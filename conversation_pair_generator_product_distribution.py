@@ -1,5 +1,6 @@
 import os
 import sys
+import copy
 import glob
 import json
 from pprint import pprint
@@ -8,6 +9,7 @@ import re
 from tqdm import tqdm
 from setting_concept_taxonomy_utils import build_setting_concept_taxonomy
 from llm_utils import run_llm
+from openai_tts_utils import run_tts
 
 
 RANDOM_SEED = 0
@@ -87,6 +89,15 @@ def fill_out_prompt(prompt_template, **kwargs):
     return prompt
 
 
+def simplify_conversation_json(conversation):
+    simplified_json = copy.deepcopy(conversation)
+    for role in ['user', 'agent']:
+        simplified_json[role].pop('words', None)
+        simplified_json[role].pop('text', None)
+
+    return simplified_json
+
+
 def generate_conversation_pair_phase(setting_concept_taxonomy):
     setting_name, user_name = setting_concept_taxonomy['setting_name'], setting_concept_taxonomy['user_name']
     random.seed(RANDOM_SEED)
@@ -97,6 +108,7 @@ def generate_conversation_pair_phase(setting_concept_taxonomy):
         conversation_types = json.load(f)
 
     check_conversation_types(conversation_types)
+    t = 0
     while True:
         cA, cB = sample_conversation_type_pair(conversation_types)
         setting_concept = random.choice(setting_concept_taxonomy['leaf_paths'] + setting_concept_taxonomy['inner_paths'])
@@ -113,16 +125,23 @@ def generate_conversation_pair_phase(setting_concept_taxonomy):
         prompt = fill_out_prompt(prompt_template, setting_name=setting_name, user_name=user_name, cA=cA, cB=cB, setting_concept=setting_concept, query_complexity=query_complexity, user_register=user_register)
         print('generating...')
         conversation_pair = run_llm(prompt, is_json=True)
-        print('')
-        print('Conversation A:')
-        print(conversation_pair['A'])
-        print('')
-        print('Conversation B:')
-        print(conversation_pair['B'])
-        print('')
+        print('tts...')
+        for ab in ['A', 'B']:
+            simplified_json = simplify_conversation_json(conversation_pair[ab])
+            print('Conversation %s:'%(ab))
+            print(simplified_json)
+            print('')
+            with open('outputs/%s_%d_%s.json'%(setting_name.replace(' ', '_'), t, ab), 'w') as f:
+                json.dump(simplified_json, f)
+
+            for role in ['user', 'agent']:
+                audio_filename = 'outputs/%s_%d_%s_%s.wav'%(setting_name.replace(' ', '_'), t, ab, role)
+                run_tts(conversation_pair[ab][role]['text_with_emphasis'], conversation_pair[ab][role]['emotion'], audio_filename)
+
         print('Would you like to generate another? If so, type "c", otherwise kill the script.')
         import pdb
         pdb.set_trace()
+        t += 1
 
 
 def conversation_pair_generator_product_distribution():
