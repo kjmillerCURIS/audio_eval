@@ -2,6 +2,7 @@ from evaluation.config import HF_CACHE_PATH
 from evaluation.libs.DNSMOS.dnsmos_single import ComputeScore, SAMPLING_RATE
 
 import utmosv2
+from jiwer import wer
 
 def utmosv2_score(audio_path):
 
@@ -43,17 +44,22 @@ def dnsmos_score(audio_path):
 
     return interpretable_scores
 
+def word_error_rate(generated_text, transcribed_text):
+    return round(wer(generated_text, transcribed_text), 3)
 
-def audio_quality_scores(audio_path):
+def audio_quality_scores(audio_path, generated_text, transcription):
     utmos_score = utmosv2_score(audio_path)
 
     # Get DNSMOS personalized scores (dict with formatted strings)
     dnsmos_personalized_scores = dnsmos_score(audio_path)
 
+    word_err_rate = word_error_rate(generated_text, transcription)
+
     # Combine results into a single dict
     combined_scores = {
         "UTMOSv2_Mean_Opinion_Score": utmos_score,
         **dnsmos_personalized_scores,
+        "WER": word_err_rate
     }
 
     return combined_scores
