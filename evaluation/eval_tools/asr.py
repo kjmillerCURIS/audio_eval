@@ -17,9 +17,10 @@ def whisper_transcribe(audio_path: str, model_id: str = "openai/whisper-large-v3
         tokenizer=processor.tokenizer,
         feature_extractor=processor.feature_extractor,
         torch_dtype="auto", 
-        device_map="auto"
+        device_map="auto",
+        return_timestamps=True
     )
 
     transcription = pipe(audio_path, generate_kwargs={"language": "english"})
 
-    return transcription
+    return transcription["text"]
