@@ -33,7 +33,7 @@ class Qwen2_5Omni(Model):
             cache_dir (str, optional): path to cache pretrained models
             device (str or torch.device, optional): device to run model on
         """
-
+        self.name = "qwen-2.5-omni"
         self.model = Qwen2_5OmniForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-Omni-7B", torch_dtype="auto", device_map="auto")
         self.processor = Qwen2_5OmniProcessor.from_pretrained("Qwen/Qwen2.5-Omni-7B")
 
@@ -60,6 +60,7 @@ class Qwen2_5Omni(Model):
                         "text": (
                             "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, "
                             "capable of perceiving auditory and visual inputs, as well as generating text and speech."
+                            "You are currently serving as a bank assistant, and a user has approached you about their data privacy concerns."   #<- Added here for testing, but most models dont support system prompt (SovaBench sec 4.1)
                         ),
                     }
                 ],
@@ -99,12 +100,14 @@ class Qwen2_5Omni(Model):
         )
 
         # Decode generated text
-        generated_text = self.processor.batch_decode(
+        generated_text_raw = self.processor.batch_decode(
             text_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )[0]
 
+        generated_text = self._parse_generated_text(generated_text_raw)
+
         # Save generated audio
-        output_audio_path = input_file_path.replace(".wav", "_qwen2.5-omni_output.wav")
+        output_audio_path = input_file_path.replace(".wav", f"_{self.name}_output.wav")
         sf.write(
             output_audio_path,
             audio.reshape(-1).detach().cpu().numpy(),
@@ -113,6 +116,14 @@ class Qwen2_5Omni(Model):
 
         return output_audio_path, generated_text
 
+
+    def _parse_generated_text(self, generated_text: str) -> str:
+        marker = "assistant\n"
+        idx = generated_text.find(marker)
+        if idx == -1:
+            warnings.warn(f"Marker '{marker.strip()}' not found in {self.name} generated text.")
+            return generated_text
+        return generated_text[idx + len(marker):].strip()
 
 
 
