@@ -9,12 +9,14 @@ import re
 from tqdm import tqdm
 from setting_concept_taxonomy_utils import build_setting_concept_taxonomy
 from llm_utils import run_llm
-from openai_tts_utils import run_tts
+#from openai_tts_utils import run_tts
+from openai_tts_demo import tts_prompt_hack
 
 
 RANDOM_SEED = 0
 USER_REGISTERS = ["the user is a layperson", "user has above-average expertise", ""]
 QUERY_COMPLEXITIES = ["the user's query need not be limited to this concept", "this concept shouldn't be the only concept mentioned", "this concept should be the only concept mentioned", ""]
+SHOW_REVISION = True
 
 
 def sample_conversation_type_pair(conversation_types):
@@ -78,9 +80,6 @@ def obtain_setting_concept_taxonomy_phase():
             return setting_concept_taxonomies[int(my_input)]
 
 
-    assert(False) #KEVIN
-
-
 def fill_out_prompt(prompt_template, **kwargs):
     prompt = prompt_template
     for k in sorted(kwargs.keys()):
@@ -98,11 +97,39 @@ def simplify_conversation_json(conversation):
     return simplified_json
 
 
+def is_valid(conversation_pair):
+    N = len(conversation_pair['A']['user']['words'])
+    if len(conversation_pair['B']['user']['words']) != N:
+        return False
+
+    for ab in ['A', 'B']:
+        for k in ['text', 'text_with_emphasis']:
+            if len(conversation_pair[ab]['user'][k].split()) != N:
+                return False
+
+    return True
+
+
+def convert_emphasis(text_with_emphasis):
+    def replacer(match):
+        # Split the contents of the emphasis tag into words
+        words = match.group(1).split()
+        # Capitalize and double-asterisk each word
+        emphasized = ' '.join(f'**{word.upper()}**' for word in words)
+        return emphasized
+
+    # Replace all <emphasis>...</emphasis> sections
+    return re.sub(r'<emphasis>(.*?)</emphasis>', replacer, text_with_emphasis)
+
+
 def generate_conversation_pair_phase(setting_concept_taxonomy):
     setting_name, user_name = setting_concept_taxonomy['setting_name'], setting_concept_taxonomy['user_name']
     random.seed(RANDOM_SEED)
     with open('conversation_pair_prompt.txt', 'r') as f:
         prompt_template = f.read()
+
+    with open('emphasis_revision_prompt.txt', 'r') as f:
+        revision_prompt = f.read()
 
     with open('conversation_types.json', 'r') as f:
         conversation_types = json.load(f)
@@ -123,9 +150,33 @@ def generate_conversation_pair_phase(setting_concept_taxonomy):
         print('query_complexity = "%s"'%(query_complexity))
         print('user_register = "%s"'%(user_register))
         prompt = fill_out_prompt(prompt_template, setting_name=setting_name, user_name=user_name, cA=cA, cB=cB, setting_concept=setting_concept, query_complexity=query_complexity, user_register=user_register)
-        print('generating...')
-        conversation_pair = run_llm(prompt, is_json=True)
-        print('tts...')
+        while True:
+            print('generating...')
+            init_conversation_pair, full_response = run_llm(prompt, is_json=True)
+            print('revising...')
+            conversation_pair, revision_full_response = run_llm([prompt, full_response, revision_prompt], is_json=True)
+            revision_part = revision_full_response.split('{')[0]
+            if is_valid(conversation_pair):
+                break
+
+            print('let\'s try that again...')
+
+        if SHOW_REVISION:
+            print('before revision:')
+            for ab in ['A', 'B']:
+                simplified_json = simplify_conversation_json(init_conversation_pair[ab])
+                print('Conversation %s:'%(ab))
+                print(simplified_json)
+                print('')
+
+            print('revision explanation:')
+            print(revision_part)
+            print('')
+            print('after_revision:')
+
+        if not SHOW_REVISION:
+            print('tts...')
+
         for ab in ['A', 'B']:
             simplified_json = simplify_conversation_json(conversation_pair[ab])
             print('Conversation %s:'%(ab))
@@ -136,7 +187,9 @@ def generate_conversation_pair_phase(setting_concept_taxonomy):
 
             for role in ['user', 'agent']:
                 audio_filename = 'outputs/%s_%d_%s_%s.wav'%(setting_name.replace(' ', '_'), t, ab, role)
-                run_tts(conversation_pair[ab][role]['text_with_emphasis'], conversation_pair[ab][role]['emotion'], audio_filename)
+                text_with_emphasis = convert_emphasis(conversation_pair[ab][role]['text_with_emphasis'])
+                emotion = conversation_pair[ab][role]['emotion']
+                tts_prompt_hack(text_with_emphasis, emotion, audio_filename)
 
         print('Would you like to generate another? If so, type "c", otherwise kill the script.')
         import pdb

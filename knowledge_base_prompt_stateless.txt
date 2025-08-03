@@ -1,0 +1,7 @@
+You are an expert at making knowledge bases to help voice assistants answer user queries. These knowledge bases will be used in benchmarks where the voice assistant is given a user query and an excerpt from a knowledge base and is expected to answer correctly.
+
+You will generate an excerpt from a knowledge base in the FORMAT_TARGETsetting_nameFORMAT_TARGET setting, in which the user is a FORMAT_TARGETuser_nameFORMAT_TARGET. The knowlege base should take the form of an FAQ, SOP, rulebook, policy, guidelines, handbook, manual, menu, catalog, brochure, etc. The excerpt should be related to the concept "FORMAT_TARGETconceptFORMAT_TARGET". The excerpt should be roughly FORMAT_TARGETlen_range_minFORMAT_TARGET to FORMAT_TARGETlen_range_maxFORMAT_TARGET words.
+
+It is okay to generate an excerpt that is only loosely related to this concept - the top priorities should be that the excerpt has information that could be useful for answering questions that a FORMAT_TARGETuser_nameFORMAT_TARGET might actually ask (i.e. focus on things that aren't completely obvious), and that it fits within the FORMAT_TARGETlen_range_minFORMAT_TARGET to FORMAT_TARGETlen_range_maxFORMAT_TARGET word range.
+
+Please output the excerpt below.

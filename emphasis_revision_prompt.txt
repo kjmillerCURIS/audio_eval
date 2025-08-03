@@ -1,0 +1,3 @@
+Please take a look at the JSON you generated and check if the correct words are being emphasized, particularly in the user utterances. In particular, you should check if the emphasis choices in example["A"]["user"]["text_with_emphasis"] are consistent with the description in example["A"]["user"]["description"], and also check if the emphasis choices in example["B"]["user"]["text_with_emphasis"] are consistent with the description in example["B"]["user"]["description"].
+
+Explain your reasoning. Either explain why you think the emphasis choices are consistent with the descriptions, or explain any inconsistencies and how you would correct them. Then, output either a revised version of the entire JSON, or just the entire JSON with no revisions if none are necessary.
