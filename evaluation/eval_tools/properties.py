@@ -32,15 +32,34 @@ def estimate_mean_rms_dbfs(audio_path, sr=16000):
     mean_rms_dbfs = librosa.amplitude_to_db(np.array([mean_rms]), ref=1.0)[0]
     return mean_rms_dbfs
 
-def audio_properties(audio_path, sr=16000):
+def calculate_speech_rate(word_chunks, audio_path):
+    """
+    Calculate speech rate (WPM) including pauses.
+    """
+    num_words = len(word_chunks)
+    duration = librosa.get_duration(path=audio_path)
+    wpm = (num_words / duration) * 60 
+    return round(wpm, 2)
+    
+def calculate_articulation_rate(word_chunks):
+    num_words = len(word_chunks)
+    speech_duration = word_chunks[-1]["timestamp"][1]
+    articulation_rate = (num_words / speech_duration) * 60
+    return round(articulation_rate, 2)
+
+def audio_properties(audio_path, word_chunks, sr=16000):
     """
     Extract basic audio properties: pitch (Hz) and RMS loudness (dBFS).
     """
     mean_pitch, std_dev_pitch = estimate_pitch(audio_path, sr=sr)
     rms_dbfs = estimate_mean_rms_dbfs(audio_path, sr=sr)
+    speech_rate = calculate_speech_rate(word_chunks, audio_path)
+    articulation_rate = calculate_articulation_rate(word_chunks)
 
     return {
         "Mean_Pitch_Hz": round(float(mean_pitch), 2),
         "Std_Dev_Pitch_Hz": round(float(std_dev_pitch), 2),
         "Mean_RMS_dBFS": round(float(rms_dbfs), 2),
+        "Speech_Rate_WPM": speech_rate,
+        "Articulation_Rate_WPM": articulation_rate,
     }
