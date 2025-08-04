@@ -44,3 +44,11 @@ def run_llm(query, is_json=False, return_json_as_str=False):
         return extract_json(response, return_json_as_str=return_json_as_str), response
     else:
         return response
+
+
+def fill_out_prompt(prompt_template, **kwargs):
+    prompt = prompt_template
+    for k in sorted(kwargs.keys()):
+        prompt = prompt.replace('FORMAT_TARGET' + k + 'FORMAT_TARGET', kwargs[k])
+
+    return prompt

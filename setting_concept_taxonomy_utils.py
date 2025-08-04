@@ -1,6 +1,8 @@
 import os
 import sys
 import copy
+import glob
+import json
 from pprint import pprint
 from tqdm import tqdm
 from llm_utils import run_llm
@@ -86,6 +88,41 @@ def build_setting_concept_taxonomy(setting_name, user_name):
     leaf_paths, inner_paths = find_paths(my_tree, include_inner=True)
     print('full taxonomy has %d leaf nodes and %d inner nodes'%(len(leaf_paths), len(inner_paths)))
     return {'tree' : my_tree, 'leaf_paths' : leaf_paths, 'inner_paths' : inner_paths, 'setting_name' : setting_name, 'user_name' : user_name}
+
+
+#this part is like a UI
+def obtain_setting_concept_taxonomy_phase():
+    setting_concept_taxonomy_filenames = sorted(glob.glob('setting_concept_taxonomies/setting_*.json'))
+    setting_concept_taxonomies = {}
+    print('loading existing setting concept taxonomies...')
+    for filename in tqdm(setting_concept_taxonomy_filenames):
+        with open(filename, 'r') as f:
+            taxonomy = json.load(f)
+
+        index = int(os.path.splitext(os.path.basename(filename))[0].split('_')[-1])
+        assert(index not in setting_concept_taxonomies)
+        setting_concept_taxonomies[index] = taxonomy
+
+    while True:
+        print('Here are the available taxonomies:')
+        for index in sorted(setting_concept_taxonomies.keys()):
+            print('%d ==> setting_name="%s", user_name="%s"'%(index, setting_concept_taxonomies[index]['setting_name'], setting_concept_taxonomies[index]['user_name']))
+
+        while True:
+            my_input = input('Please enter an index of an existing taxonomy, or "+" to build a new one:')
+            if my_input == '+' or (my_input.isdigit() and int(my_input) in setting_concept_taxonomies):
+                break
+
+        if my_input == '+':
+            new_index = max([index for index in sorted(setting_concept_taxonomies.keys())]) + 1 if len(setting_concept_taxonomies) > 0 else 0
+            setting_name = input('please enter setting name (e.g. hospital, bank):')
+            user_name = input('please enter user name (e.g. patient, customer):')
+            taxonomy = build_setting_concept_taxonomy(setting_name, user_name)
+            setting_concept_taxonomies[new_index] = taxonomy
+            with open(os.path.join('setting_concept_taxonomies', 'setting_%d.json'%(new_index)), 'w') as f:
+                json.dump(taxonomy, f, indent=4, sort_keys=True)
+        else:
+            return setting_concept_taxonomies[int(my_input)]
 
 
 if __name__ == '__main__':

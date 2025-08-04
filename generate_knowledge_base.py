@@ -2,8 +2,8 @@ import os
 import sys
 import random
 from tqdm import tqdm
-from llm_utils import run_llm
-from conversation_pair_generator_product_distribution import fill_out_prompt, obtain_setting_concept_taxonomy_phase
+from llm_utils import run_llm, fill_out_prompt
+from setting_concept_taxonomy_utils import obtain_setting_concept_taxonomy_phase
 
 
 RANDOM_SEED = 42

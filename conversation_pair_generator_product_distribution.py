@@ -7,9 +7,8 @@ from pprint import pprint
 import random
 import re
 from tqdm import tqdm
-from setting_concept_taxonomy_utils import build_setting_concept_taxonomy
-from llm_utils import run_llm
-#from openai_tts_utils import run_tts
+from setting_concept_taxonomy_utils import obtain_setting_concept_taxonomy_phase
+from llm_utils import run_llm, fill_out_prompt
 from openai_tts_demo import tts_prompt_hack
 
 
@@ -44,48 +43,6 @@ def check_conversation_types(conversation_types):
         assert(all([c in conversation_types['conversation_types'] for c in g]))
 
     assert(all([c in conversation_types['conversation_types'] for c in conversation_types['can_double_sample']]))
-
-
-def obtain_setting_concept_taxonomy_phase():
-    setting_concept_taxonomy_filenames = sorted(glob.glob('setting_concept_taxonomies/setting_*.json'))
-    setting_concept_taxonomies = {}
-    print('loading existing setting concept taxonomies...')
-    for filename in tqdm(setting_concept_taxonomy_filenames):
-        with open(filename, 'r') as f:
-            taxonomy = json.load(f)
-
-        index = int(os.path.splitext(os.path.basename(filename))[0].split('_')[-1])
-        assert(index not in setting_concept_taxonomies)
-        setting_concept_taxonomies[index] = taxonomy
-
-    while True:
-        print('Here are the available taxonomies:')
-        for index in sorted(setting_concept_taxonomies.keys()):
-            print('%d ==> setting_name="%s", user_name="%s"'%(index, setting_concept_taxonomies[index]['setting_name'], setting_concept_taxonomies[index]['user_name']))
-
-        while True:
-            my_input = input('Please enter an index of an existing taxonomy, or "+" to build a new one:')
-            if my_input == '+' or (my_input.isdigit() and int(my_input) in setting_concept_taxonomies):
-                break
-
-        if my_input == '+':
-            new_index = max([index for index in sorted(setting_concept_taxonomies.keys())]) + 1 if len(setting_concept_taxonomies) > 0 else 0
-            setting_name = input('please enter setting name (e.g. hospital, bank):')
-            user_name = input('please enter user name (e.g. patient, customer):')
-            taxonomy = build_setting_concept_taxonomy(setting_name, user_name)
-            setting_concept_taxonomies[new_index] = taxonomy
-            with open(os.path.join('setting_concept_taxonomies', 'setting_%d.json'%(new_index)), 'w') as f:
-                json.dump(taxonomy, f, indent=4, sort_keys=True)
-        else:
-            return setting_concept_taxonomies[int(my_input)]
-
-
-def fill_out_prompt(prompt_template, **kwargs):
-    prompt = prompt_template
-    for k in sorted(kwargs.keys()):
-        prompt = prompt.replace('FORMAT_TARGET' + k + 'FORMAT_TARGET', kwargs[k])
-
-    return prompt
 
 
 def simplify_conversation_json(conversation):
