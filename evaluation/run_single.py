@@ -8,6 +8,8 @@ from evaluation.eval_tools.asr import whisper_transcribe
 from evaluation.eval_tools.emotion import emotion_to_vec_scores
 from evaluation.eval_tools.quality import audio_quality_scores
 from evaluation.eval_tools.properties import audio_properties
+from evaluation.eval_tools.accent import get_accent
+from evaluation.eval_tools.consistency import get_consistency_score
 
 def main():
     parser = argparse.ArgumentParser(description="Run model inference and evaluation on an audio file.")
@@ -20,23 +22,31 @@ def main():
     output_audio_path, generated_text = model(args.audio_path)
 
     # Step 2: Transcribe the audio
-    transcription = whisper_transcribe(output_audio_path)
+    transcription, word_chunks = whisper_transcribe(output_audio_path)
 
     # Step 3: Audio properties
-    audio_prop = audio_properties(output_audio_path)
+    audio_prop = audio_properties(output_audio_path, word_chunks)
 
     # Step 4: Emotion scores
     emotion_scores = emotion_to_vec_scores(output_audio_path)
 
-    # Step 5: Audio quality scores
+    # Step 5: Accent scores
+    accent_scores = get_accent(output_audio_path)
+
+    # Step 6: Audio quality scores
     audio_scores = audio_quality_scores(output_audio_path, generated_text, transcription)
 
-    # Step 6: Build output JSON
+    # Step 7: Speaker consistency scor e
+    l2_score, cos_score = get_consistency_score(output_audio_path)
+
+    # Step 8: Build output JSON
     output_data = {
         "agent_response": transcription,
         "agent_emotion": emotion_scores,
+        "agent_accent": accent_scores,
         "agent_audio_quality": audio_scores,
-        "agent_audio_properties": audio_prop,
+        "agent_audio_properties": audio_prop,   
+        "agent_speaker_consistency": cos_score,
     }
 
     # Save JSON file
