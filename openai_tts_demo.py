@@ -3,7 +3,9 @@ import sys
 from pydub import AudioSegment
 import torch
 import torchaudio
+print('importing whisperx...')
 import whisperx
+print('yay whisperx!')
 from tqdm import tqdm
 from openai import OpenAI
 from openai_utils import OPENAI_API_KEY
@@ -12,7 +14,9 @@ os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
 client = OpenAI()
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print('loading whisperx model...')
 model_a, metadata = whisperx.load_align_model(language_code="en", device=device)
+print('yay whisperx model!')
 
 
 TEMP_FILENAME = 'temp.wav'

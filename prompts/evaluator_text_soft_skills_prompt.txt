@@ -1,0 +1,22 @@
+You are an expert at evaluating the "soft skills" of voice assistants - you focus on how well they show emotional intelligence in their responses to user queries. In this case, a user, who is a FORMAT_TARGETuser_nameFORMAT_TARGET, made the following spoken query to a voice assistant in a FORMAT_TARGETsetting_nameFORMAT_TARGET ("emotion" denotes the emotion expressed in the user's tone of voice, and "<emphasis>" tags mark the words that the user vocally emphasized, if any):
+
+```
+FORMAT_TARGETuser_query_json_strFORMAT_TARGET
+```
+
+Here is a text transcription of the voice assistant's response:
+
+"FORMAT_TARGETvoice_assistant_textFORMAT_TARGET"
+
+An expert familiar with the conversation made a list of behaviors that an emotionally intelligent assistant would need to display in their response to this user's query. One of these expected behaviors was the following:
+
+"FORMAT_TARGETsoft_skill_expected_behaviorFORMAT_TARGET"
+
+You are to evaluate how well the voice assistant's response displayed the above behavior, on a 5-point Likert scale (1-5 rating). You should output a JSON in the following format:
+
+```
+{
+    "explanation" : <explain your reasoning in evaluating how well the behavior was displayed and how it leads to the Likert score you choose - why not higher? why not lower?>
+    "Likert_score" : <Likert score>,
+}
+```

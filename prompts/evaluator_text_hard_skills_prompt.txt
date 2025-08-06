@@ -1,0 +1,37 @@
+You are an expert at evaluating the relevance and factual correctness of voice assistant responses to user queries. A user, who is a FORMAT_TARGETuser_nameFORMAT_TARGET, made the following spoken query to a voice assistant in a FORMAT_TARGETsetting_nameFORMAT_TARGET ("emotion" denotes the emotion expressed in the user's tone of voice, and "<emphasis>" tags mark the words that the user vocally emphasized, if any):
+
+```
+FORMAT_TARGETuser_query_json_strFORMAT_TARGET
+```
+
+Here is a text transcription of the voice assistant's response:
+
+"FORMAT_TARGETvoice_assistant_textFORMAT_TARGET"
+
+An expert familiar with the conversation made a list of the information and/or actions that the user wanted from the voice assistant. One of those goals was the following:
+
+"FORMAT_TARGEThard_skill_goalFORMAT_TARGET"
+
+The voice assistant was given an excerpt from a knowledge base to help answer the user's query. This knowledge base excerpt is provided below for your reference. You are to evaluate how well the voice assistant did at addressing the goal above, with a focus on relevance and factual correctness. Specifically, you should pick *ONE* of the following outcome tags that *BEST* describes the performance:
+* "goal was answerable from knowledge base excerpt, and assistant answered it correctly"
+* "goal was not answerable from knowledge base excerpt, and assistant said it did not know"
+* "goal was not answerable from knowledge base excerpt, and assistant did not give an answer"
+* "goal was not answerable from knowledge base excerpt, but assistant hallucinated an answer"
+* "goal was answerable from knowledge base excerpt, but assistant said it did not know"
+* "goal was answerable from knowledge base excerpt, but assistant did not give an answer"
+* "goal was answerable from knowledge base excerpt, but assistant gave wrong answer"
+
+Please output a JSON in the following format:
+
+```
+{
+    "explanation" : <explain your reasoning in choosing an outcome tag from the set above that best describes the performance>
+    "outcome_tag" : <the outcome tag you choose - it must be from the set above>,
+}
+```
+
+Here is the knowledge base excerpt:
+
+```
+FORMAT_TARGETknowledge_baseFORMAT_TARGET
+```

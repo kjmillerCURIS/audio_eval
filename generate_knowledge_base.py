@@ -7,7 +7,7 @@ from setting_concept_taxonomy_utils import obtain_setting_concept_taxonomy_phase
 
 
 RANDOM_SEED = 42
-PROMPT_FILENAMES = ['knowledge_base_prompt_stateless.txt', 'knowledge_base_prompt_stateful.txt']
+PROMPT_FILENAMES = ['prompts/knowledge_base_prompt_stateless.txt', 'prompts/knowledge_base_prompt_stateful.txt']
 LEN_RANGES = [(100, 200), (100, 200)]
 
 

@@ -122,7 +122,8 @@ def obtain_setting_concept_taxonomy_phase():
             with open(os.path.join('setting_concept_taxonomies', 'setting_%d.json'%(new_index)), 'w') as f:
                 json.dump(taxonomy, f, indent=4, sort_keys=True)
         else:
-            return setting_concept_taxonomies[int(my_input)]
+            setting_index = int(my_input)
+            return setting_concept_taxonomies[setting_index], setting_index
 
 
 if __name__ == '__main__':

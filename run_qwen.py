@@ -2,14 +2,16 @@ import os
 import sys
 import json
 import soundfile as sf
+print('importing transformers...')
 from transformers import Qwen2_5OmniForConditionalGeneration, Qwen2_5OmniProcessor
 from qwen_omni_utils import process_mm_info
+print('yay transformers!')
 from llm_utils import fill_out_prompt
 os.environ["TRANSFORMERS_CACHE"] = "models"
 
 
 DEFAULT_SYSTEM_PROMPT = 'You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech.'
-VOICE_ASSISTANT_SYSTEM_PROMPT_FILENAME = 'voice_assistant_system_prompt.txt'
+VOICE_ASSISTANT_SYSTEM_PROMPT_FILENAME = 'prompts/voice_assistant_system_prompt.txt'
 USE_AUDIO_IN_VIDEO = True
 
 
@@ -25,7 +27,7 @@ def run_qwen(audio_input_filename, setting_name, user_name, knowledge_base, qwen
     with open(VOICE_ASSISTANT_SYSTEM_PROMPT_FILENAME, 'r') as f:
         voice_assistant_system_prompt = f.read()
 
-    voice_assistant_system_prompt = fill_out_prompt(voice_assistant_system_prompt, knowledge_base=knowledge_base)
+    voice_assistant_system_prompt = fill_out_prompt(voice_assistant_system_prompt, knowledge_base=knowledge_base, setting_name=setting_name, user_name=user_name)
     conversation = [
         {
             "role": "system",

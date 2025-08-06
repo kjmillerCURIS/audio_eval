@@ -51,4 +51,5 @@ def fill_out_prompt(prompt_template, **kwargs):
     for k in sorted(kwargs.keys()):
         prompt = prompt.replace('FORMAT_TARGET' + k + 'FORMAT_TARGET', kwargs[k])
 
+    assert('FORMAT_TARGET' not in prompt) #make sure everything is filled out!
     return prompt
