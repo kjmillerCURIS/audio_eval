@@ -2,15 +2,22 @@ from evaluation.config import HF_CACHE_PATH
 from evaluation.libs.DNSMOS.dnsmos_single import ComputeScore, SAMPLING_RATE
 
 import utmosv2
-from jiwer import wer
+import jiwer
+
+utmosv2_model = utmosv2.create_model(pretrained=True)
+
+dnsmos_scorer = ComputeScore(
+        model_path="evaluation/models/DNSMOS/sig_bak_ovr.onnx",
+        p_model_path="evaluation/models/DNSMOS/p_sig_bak_ovr.onnx",
+        p808_model_path="evaluation/models/DNSMOS/model_v8.onnx")
+
 
 def utmosv2_score(audio_path):
-
-    model = utmosv2.create_model(pretrained=True)
-    mos = model.predict(input_path=audio_path)
+    mos = utmosv2_model.predict(input_path=audio_path)
     mos_str = f"{mos:.2f} / 5.00"
 
     return mos_str
+
 
 def dnsmos_score(audio_path):
     """
@@ -22,18 +29,8 @@ def dnsmos_score(audio_path):
     Score docs: https://github.com/microsoft/DNS-Challenge/issues/123
     """
     
-    def load_dnsmos_models(
-        model_path="evaluation/models/DNSMOS/sig_bak_ovr.onnx",
-        p_model_path="evaluation/models/DNSMOS/p_sig_bak_ovr.onnx",
-        p808_model_path="evaluation/models/DNSMOS/model_v8.onnx",
-    ):
-        return ComputeScore(model_path, p_model_path, p808_model_path)
-
-    # Load model
-    scorer = load_dnsmos_models()
-
     # Compute scores
-    dnsmos_scores = scorer(audio_path, sampling_rate=SAMPLING_RATE)
+    dnsmos_scores = dnsmos_scorer(audio_path, sampling_rate=SAMPLING_RATE)
 
     interpretable_scores = {
         "DNSMOS_Personalized_Signal_Quality": f"{dnsmos_scores['P_SIG']:.2f} / 5.00",
@@ -45,7 +42,15 @@ def dnsmos_score(audio_path):
     return interpretable_scores
 
 def word_error_rate(generated_text, transcribed_text):
-    return round(wer(generated_text, transcribed_text), 3)
+
+    transform = jiwer.Compose([
+        jiwer.ToLowerCase(),
+        jiwer.RemovePunctuation(),
+        jiwer.RemoveMultipleSpaces(),
+        jiwer.Strip()
+    ])
+
+    return round(jiwer.wer(generated_text, transcribed_text, reference_transform=transform, hypothesis_transform=transform), 3)
 
 def audio_quality_scores(audio_path, generated_text, transcription):
     utmos_score = utmosv2_score(audio_path)

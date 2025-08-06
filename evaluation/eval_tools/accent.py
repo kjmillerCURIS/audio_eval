@@ -3,17 +3,18 @@ from evaluation.config import HF_CACHE_PATH
 import torchaudio
 from speechbrain.inference import EncoderClassifier
 
+speechbrain_classifier = EncoderClassifier.from_hparams(
+        source="Jzuluaga/accent-id-commonaccent_ecapa", 
+        savedir=HF_CACHE_PATH + "/models--sb-accent" 
+    )
+
 def get_accent(audio_path):
     """
     - Speechbrain classifier from this repo - https://github.com/JuanPZuluaga/accent-recog-slt2022 
     - Outputs cosine sim scores between class embeddings and audio embeddings
     """
-    classifier = EncoderClassifier.from_hparams(
-        source="Jzuluaga/accent-id-commonaccent_ecapa", 
-        savedir=HF_CACHE_PATH + "/models--sb-accent" 
-    )
 
-    cos_sim_scores, score, index, text_lab = classifier.classify_file(audio_path)
+    cos_sim_scores, score, index, text_lab = speechbrain_classifier.classify_file(audio_path)
 
     accent_labels = [
         'england', 'us', 'canada', 'australia', 'indian', 'scotland', 'ireland',

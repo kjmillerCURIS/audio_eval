@@ -2,16 +2,20 @@ from evaluation.config import HF_CACHE_PATH
 
 from funasr import AutoModel
 
-def emotion_to_vec_scores(audio_path, model_id = "iic/emotion2vec_plus_large"):
+"""
+- Can also conider adding: https://huggingface.co/speechbrain/emotion-recognition-wav2vec2-IEMOCAP for 4 way classifer 
+"""
 
-    model = AutoModel(
-        model=model_id,
-        hub="hf",  
-        cache_dir=HF_CACHE_PATH,
-    )
+e2vec_model = AutoModel(
+    model="iic/emotion2vec_plus_large",
+    hub="hf",  
+    cache_dir=HF_CACHE_PATH,
+)
+
+def emotion_to_vec_scores(audio_path):
 
     # Run inference
-    rec_result = model.generate(
+    rec_result = e2vec_model.generate(
         audio_path,
         granularity="utterance",
         extract_embedding=False,

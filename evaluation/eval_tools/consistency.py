@@ -5,18 +5,18 @@ import torchaudio
 from speechbrain.pretrained import EncoderClassifier
 import torch.nn.functional as F
 
-def speaker_match_score(audio_path_1, audio_path_2):
-    # Load the model once
-    classifier = EncoderClassifier.from_hparams(
+speechbrain_classifier = EncoderClassifier.from_hparams(
         source="speechbrain/spkrec-ecapa-voxceleb",
         savedir=HF_CACHE_PATH + "/models--sb-speaker" 
     )
+
+def speaker_match_score(audio_path_1, audio_path_2):
 
     def get_embedding(audio_path):
         signal, fs = torchaudio.load(audio_path)
         if signal.shape[0] > 1:
             signal = torch.mean(signal, dim=0, keepdim=True)
-        embedding = classifier.encode_batch(signal)  # Shape: (1, embedding_dim, 1)
+        embedding = speechbrain_classifier.encode_batch(signal)  # Shape: (1, embedding_dim, 1)
         embedding = embedding.squeeze(-1).squeeze(0)  # Shape: (embedding_dim,)
         return embedding
 
@@ -32,12 +32,6 @@ def get_consistency_score(audio_path, chunk=4):
     - Quantifies speaker self consistency by chunking audio and comparing embeddings
     - Chunk is chunk size in seconds
     """
-    # Load the model once
-    classifier = EncoderClassifier.from_hparams(
-        source="speechbrain/spkrec-ecapa-voxceleb",
-        savedir=HF_CACHE_PATH + "/models--sb-speaker" 
-    )
-
     # Load the audio file
     signal, fs = torchaudio.load(audio_path)
     
@@ -58,7 +52,7 @@ def get_consistency_score(audio_path, chunk=4):
         if chunk_signal.shape[1] < 10:
             continue
         
-        embedding = classifier.encode_batch(chunk_signal)  # Shape: (1, embedding_dim, 1)
+        embedding = speechbrain_classifier.encode_batch(chunk_signal)  # Shape: (1, embedding_dim, 1)
         embedding = embedding.squeeze(-1).squeeze(0)  # Shape: (embedding_dim,)
         embeddings_list.append(embedding)
     
