@@ -41,16 +41,20 @@ def dnsmos_score(audio_path):
 
     return interpretable_scores
 
+##################
+#Needs testing
+##################
 def word_error_rate(generated_text, transcribed_text):
 
     transform = jiwer.Compose([
         jiwer.ToLowerCase(),
         jiwer.RemovePunctuation(),
         jiwer.RemoveMultipleSpaces(),
-        jiwer.Strip()
+        jiwer.Strip(),
+        jiwer.ReduceToListOfListOfWords()
     ])
 
-    return round(jiwer.wer(generated_text, transcribed_text, reference_transform=transform, hypothesis_transform=transform), 3)
+    return round(jiwer.wer(reference=generated_text, hypothesis=transcribed_text, reference_transform=transform, hypothesis_transform=transform), 3)
 
 def audio_quality_scores(audio_path, generated_text, transcription):
     utmos_score = utmosv2_score(audio_path)

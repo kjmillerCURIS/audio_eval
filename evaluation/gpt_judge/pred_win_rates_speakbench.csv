@@ -1,0 +1,14 @@
+model_name,effective_win_rate
+moshi,0.109375
+diva+tts,0.6785714285714286
+gemini2-flash-exp+asr+tts,0.6818181818181818
+gemini2-flash-text+tts,0.5769230769230769
+typhoon2-audio+tts,0.4411764705882353
+gemini2-flash-exp,0.6739130434782609
+typhoon2-audio,0.15714285714285714
+asr+llama3+tts,0.6481481481481481
+gpt4o-text+tts,0.5172413793103449
+llama-omni,0.34
+gpt4o-audio+asr+tts,0.5882352941176471
+gpt4o-audio,0.65625
+qwen2-audio+tts,0.5294117647058824

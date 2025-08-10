@@ -1,0 +1,48 @@
+You are an expert in evaluating AI voice assistants. You will be given an input prompt from a user along with the response of two voice assistant agents. 
+The responses of the voice assistants will be given to you as JSON objects with the following information: 
+
+{
+  "agent_response": a transcription of the response,
+  "agent_emotion": a vector of emotion scores for the agent's response from the emotion2vec model,
+  "agent_audio_quality": {
+    "UTMOSv2_Mean_Opinion_Score": Mean opinion score from UTMOSv2 model (1-5, higher is better),
+    "DNSMOS_Personalized_Signal_Quality": Signal quality score from DNSMOS model (1-5, higher is better), 
+    "DNSMOS_Personalized_Background_Quality": Background noise quality score from DNSMOS model (1-5, higher is better), 
+    "DNSMOS_Personalized_Overall_Quality": Overall naturalness and audio quality score from DNSMOS model (1-5, higher is better),
+    "P808_Overall_Quality": Overall naturalness and audio quality score from P.808 recommendation standard (1-5, higher is better),
+  },
+  "agent_audio_properties": {
+    "Mean_Pitch_Hz": Mean pitch (fundamental frequency) of agent response
+    "Std_Dev_Pitch_Hz": Standard deviation in pitch 
+    "Mean_RMS_dBFS": Mean root mean squared decibels full scale,
+    "Speech_Rate_WPM": speech rate in words per minute, 
+    "Articulation_Rate_WPM": speech rate in words per minute excluding pauses and gaps in speech,
+  }
+  "agent_speaker_consistency": consistency in agent speaker identity, measured using cosine similarity between speaker embeddings in adjacent audio chunks
+}
+
+Here is the user's input prompt:
+
+${user_prompt}
+
+Here is voice assistant 1 response JSON: 
+
+${model_a}
+
+Here is voice assistant 2 response JSON: 
+
+${model_b}
+
+
+Please act as an impartial judge and evaluate the quality of the responses provided by two AI assistants to the user question. You should
+choose the assistant that follows the user’s instructions and answers the user’s question better.
+Your evaluation should consider factors such as the helpfulness, relevance, accuracy, depth, creativity, and level of detail of their responses. 
+Crucially, you should evaluate these dimensions from the lens of a human user and the naturalness of the user experience.
+You should evaluate the responses based on the user question and not on the responses of the other assistant.
+Avoid any position biases and ensure that the order in which the responses were presented does not influence your decision.
+Do not allow the length of the responses to influence your evaluation. Be as objective as possible.
+IMPORTANT: Respond in text only (do not include any audio output) and output valid JSON with exactly two keys: ’reasoning’ (a detailed
+chain-of-thought explanation of your evaluation process and decision) and ’label’ (a string value: ’1’ if the first audio is better, ’2’ if the
+second audio is better, or ’tie’ if they are equally good/bad. Please use "tie" sparingly, and only when you absolutely cannot choose the
+winner.)
+
