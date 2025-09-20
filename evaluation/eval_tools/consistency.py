@@ -79,4 +79,4 @@ def get_consistency_score(audio_path, chunk=4):
 
     avg_cos_sim = sum(cos_sims) / len(cos_sims)
 
-    return total_l2_distance, avg_cos_sim
+    return round(float(total_l2_distance), 3), round(float(avg_cos_sim), 3)

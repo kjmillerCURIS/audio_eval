@@ -27,8 +27,16 @@ def whisper_transcribe(audio_path: str):
     """
     Transcribes audio and returns:
     - transcript: full text
-    - word_timestamps: list of {text, timestamp=(start, end)}
+    - word_timestamps: list of [(text, start, end)]
     """
+
+    def _format_word_chunks(word_chunks):
+        word_tuples = [
+            (chunk["text"].strip(), chunk["timestamp"][0], chunk["timestamp"][1])
+            for chunk in word_chunks
+        ]
+
+        return word_tuples
 
     transcription = whisper_pipe(
         audio_path,
@@ -39,4 +47,47 @@ def whisper_transcribe(audio_path: str):
     transcript = transcription["text"]
     word_chunks = transcription["chunks"]
 
-    return transcript, word_chunks
+    return transcript, _format_word_chunks(word_chunks)
+
+
+
+
+def whisperx_transcribe(audio_path: str):
+    """
+    - Same as whisper transcribe but less accurate for word level timestamps
+    - Whisperx transcription model has environment issues 
+    - Word level timestamps are off
+    - Use audio_data/speakbench508_audio/42/audio_a.wav to see failure case
+    """
+
+    import whisperx
+
+    def _format_whisperx_word_ts(word_list):
+        """
+        Formats output to be same as HF whisper model
+        """
+        formatted = []
+        for w in word_list:
+            formatted.append({
+                "text": w["word"],
+                "timestamp": (float(w["start"]), float(w["end"]))
+            })
+        return formatted
+
+    
+    whisperx_model = whisperx.load_model(
+        "large-v3", 
+        device="cuda", 
+        compute_type="float16", 
+        download_root=HF_CACHE_PATH
+    )
+
+    audio = whisperx.load_audio(audio_path)
+    result = whisperx_model.transcribe(audio, batch_size=1)
+    print(result["segments"]) # before alignment
+
+    # 2. Align whisper output
+    model_a, metadata = whisperx.load_align_model(language_code="en", device="cuda", model_dir=HF_CACHE_PATH)
+    result = whisperx.align(result["segments"], model_a, metadata, audio, "cuda", return_char_alignments=False)
+
+    print(result["segments"]) # after alignment

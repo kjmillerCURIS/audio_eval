@@ -42,7 +42,7 @@ def dnsmos_score(audio_path):
     return interpretable_scores
 
 ##################
-#Needs testing
+#Need to test this
 ##################
 def word_error_rate(generated_text, transcribed_text):
 
