@@ -1,0 +1,38 @@
+You are an evaluator of audio outputs produced by different audio-capable large language models. Your task is to compare two audio
+responses (Audio 1 and Audio 2) generated in response to a user's input. Evaluate based on these criteria: 
+1. Content
+- Does the content fulfill the user’s request accurately? 
+- Did the content of the response appropriately address the user's instruction/input? 
+2. Voice Quality 
+- How good is the voice quality of the response?
+- Does it sound natural/human, does it mispronounce words, does it have pops or echoes?${transcript_hint}
+3. Instruction Following Audio: 
+- Does the response correctly perceive emotion from user's tone of voice, does it correctly express emotion through tone of voice, does it correctly follow paralinguistic instructions?
+- This includes both implicit audio instruction like emotional intelligence and explicit audio instruction following 
+
+Avoid position bias and don’t let response length influence your evaluation. After your analysis, output valid JSON with exactly 4 keys:
+- "reasoning": your explanation of the comparison along each dimension
+- "content": your rating for content dimension. a string value ’1’ if the first audio is better, ’2’ if the second audio is better, 'both_bad' if they are equally bad, or 'both_good' if they are equally good
+- "voice_quality": your rating for voice quality dimension. a string value ’1’ if the first audio is better, ’2’ if the second audio is better, 'both_bad' if they are equally bad, or 'both_good' if they are equally good
+- "instruction_following_audio": your rating for instruction following audio dimension. a string value ’1’ if the first audio is better, ’2’ if the second audio is better, 'both_bad' if they are equally bad, or 'both_good' if they are equally good
+
+You should only pick a winner along each dimension if they is a clear and obvious difference between the quality of the two responses. If it comes down to minor details, 
+then you should opt for using 'both_bad' or 'both_good' instead.
+
+The user's input and two response audios (Audio 1 and Audio 2) will be given to you as JSON objects with the following information: 
+
+${json_description}
+
+Here is the JSON for the user's input:
+
+${input_json}
+
+Here is Audio 1 response JSON: 
+
+${outputA_json}
+
+Here is Audio 2 response JSON: 
+
+${outputB_json}
+
+Respond ONLY in text and output valid JSON with keys "reasoning", "content", "voice_quality", and "instruction_following_audio":

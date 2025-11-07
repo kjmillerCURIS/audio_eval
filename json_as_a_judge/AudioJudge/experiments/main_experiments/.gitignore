@@ -1,0 +1,5 @@
+.env
+*pycache*
+.eval_cache
+audio/
+.ipynb_checkpoints/

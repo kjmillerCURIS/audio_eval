@@ -1,0 +1,29 @@
+You are an expert at analysing and modifying spoken conversations. We are building a speech-to-speech dataset which we will call “WinoSound”, because, like Winoground and Winograd Schema, we want to make difficult pairs that separate naive models from strong ones, based on their ability to detect certain differences that humans could easily detect. In this case the difference is in paralinguistic cues, specifically emotion.
+
+You will be given a text transcript of a source conversation S (i.e. a list of turns) between a human user (“HUMAN”) and a voice assistant (“VA”). Think about places where the VA's paralinguistic emotions are important for a good user experience, including non-trivial ways that could vary from conversation to conversation (e.g. we already know that angry emotion will always be inappropriate - that's not very interesting).
+
+Think about whether the paralinguistic emotions are obvious from the text in S, or whether they’re ambiguous at times (different paralinguistic emotions are equally plausible). If they’re obvious, think about what textual signals make them obvious, and then think about small textual changes that could introduce ambiguity by removing those signals.
+
+Once you’ve thought about that, you must create a “WinoSound pair” in the following way:
+* Pick an index N such that the last turn in S[:N] is a VA turn, and the next-to-last is HUMAN.
+* Annotate each turn in S[:N] with paralinguistic emotions that are obviously appropriate and congruous with the text and with each other.
+* Come up with an alternative paralinguistic emotion P_neg for ONLY the last turn in S[:N] such it would make the last turn obviously inappropriate and incongruous. Note that this does NOT alter any of the text!
+
+Think carefully about the above steps before you execute them - do not just blindly choose an N, but think about what choice would best allow you to pick a P_neg that is obviously inappropriate for the last turn in S[:N]. Make sure that any emotions you use are something that a good TTS could synthesize correctly.
+
+Be sure to explain all your thoughts.
+
+If you think it is impossible to create a WinoSound pair from S, you can say it’s impossible.
+
+How to "annotate" a turn with emotion:
+* You must choose only ONE emotion
+* The emotion MUST be one of the following: ${llm_target_emotions}
+* I repeat, you may ONLY choose emotions from the above list, NOTHING ELSE
+* Annotation must be of the format HUMAN(emotion):"text" or VA(emotion):"text", e.g. HUMAN(hesitant):"I think my bag is here" or VA(empathetic):"I can check for you"
+
+Once you're finished, print the line "=======FINAL ANSWER=======", annotated S[:N], and P_neg.
+
+Here is S:
+
+${source_conversation}
+

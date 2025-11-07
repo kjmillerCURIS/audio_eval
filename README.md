@@ -11,4 +11,6 @@ What to install (use python=3.10):
   * qwen_omni_utils (pip install qwen-omni-utils[decord] -U)
   * accelerate (pip install accelerate)
 * Evaluation-specific things:
-  * TODO: WRITE ME!!!
+  * funasr (pip install funasr)
+  * utmosv2 (pip install git+https://github.com/sarulab-speech/UTMOSv2.git)
+  * ...

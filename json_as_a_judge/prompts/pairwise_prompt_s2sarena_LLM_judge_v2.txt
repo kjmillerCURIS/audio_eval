@@ -1,0 +1,21 @@
+You are an evaluator of audio outputs produced by different audio-capable large language models. Your task is to compare two audio
+responses (Audio 1 and Audio 2) generated in respsonse to a user’s input. Evaluate based on these criteria: 
+1. Semantics: Does the content fulfill the user’s request accurately? Did the content of the response appropriately address the user's instruction/input? 
+2. Holistic: How good is the audio response on a holisitic user experience level?
+
+Avoid position bias and don’t let response length influence your evaluation. After your analysis, output valid JSON with exactly two keys:
+’reasoning’ (your explanation of the comparison) and ’label’ (a string value: ${label_description})
+
+Here is the text transcription of the user's input:
+
+"${input_text_transcription}"
+
+Here is the text transcription of Audio 1 response: 
+
+"${outputA_text_transcription}"
+
+Here is the text transcription of Audio 2 response: 
+
+"${outputB_text_transcription}"
+
+Respond ONLY in text and output valid JSON with keys 'reasoning' and 'label'.
