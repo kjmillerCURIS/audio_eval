@@ -1,5 +1,6 @@
 import os
 import sys
+import copy
 import json
 import random
 from tqdm import tqdm
@@ -9,8 +10,8 @@ sys.path.append('.')
 from llm_utils import run_llm
 
 
-LLM_TARGET_EMOTIONS = ['hesitant', 'panicked', 'impatient', 'apologetic/empathetic/reassuring', 'bored', 'angry', 'neutral', 'sad', 'happy']
-LOG_DIR = 'WinoSound/paralinguistic_quality_and_diversity_logs'
+LOG_DIR = 'WinoSound/paralinguistic_quality_and_diversity_logs_v4_exclude_bored_and_endimpatienthesitant'
+INPUTS = ['776', 'gi', '2395', 'gi', '2754', 'gi', '2848', 'gi', '3903', 'gi', '4473', 'gi', '7593', 'gi', '8306', 'gi', '13112', 'gi', '19933', 'gi', '23278', 'gi', '26509', 'gi', '32820', 'gi', '34102', 'gi', '37879', 'gi', '38997', 'gi', '39299', 'gi', '40415', 'gi', '40867', 'gi', '42036', 'gi']
 
 
 def print_result(result):
@@ -30,11 +31,13 @@ def stringify_result(result):
 
 def run_llm_generation(example, input_or_output, index):
     if input_or_output == 'input':
-        aug_prompt_template_filename = 'WinoSound/prompts/inaug_prompt_emotion_only.txt'
+        aug_prompt_template_filename = 'WinoSound/prompts/inaug_prompt_emotion_only_v4_exclude_bored_and_endimpatienthesitant.txt'
+        refinement_prompt_filename = 'WinoSound/prompts/inaug_prompt_emotion_only_v4_refinement.txt'
         log_filename = os.path.join(LOG_DIR, 'input_aug', '%d.txt'%(index))
     elif input_or_output == 'output':
-        aug_prompt_template_filename = 'WinoSound/prompts/outaug_prompt_emotion_only.txt'
-        log_filename = os.path.join(LOG_DIR, 'output_aug', '%d.txt'%(index))
+        assert(False) #FIXME: fix prompt before trying this
+        #aug_prompt_template_filename = 'WinoSound/prompts/outaug_prompt_emotion_only.txt'
+        #log_filename = os.path.join(LOG_DIR, 'output_aug', '%d.txt'%(index))
     else:
         assert(False)
 
@@ -42,10 +45,21 @@ def run_llm_generation(example, input_or_output, index):
     with open(aug_prompt_template_filename, 'r') as f:
         aug_prompt_template = Template(f.read())
 
-    aug_prompt = aug_prompt_template.substitute(source_conversation=example, llm_target_emotions=str(LLM_TARGET_EMOTIONS).replace('\'', '"'))
-    response = run_llm(aug_prompt, llm_name='gemini-2.5-flash', skip_config=True)
+    aug_prompt = aug_prompt_template.substitute(source_conversation=example)
+    with open(refinement_prompt_filename, 'r') as f:
+        refinement_prompt = f.read()
+
+    while True:
+        responses = run_llm([aug_prompt, refinement_prompt], llm_name='gemini-2.5-flash', skip_config=True)
+        if any([r is None for r in responses]):
+            print('ope, got a None response for some reason, let\'s try again!')
+        else:
+            break
+
+    response = responses[0] + '\n\n=======AFTER REFINEMENT=======\n\n' + responses[1]
+    preamble = '=======SOURCE CONVO=======\n\n' + example + '\n\n=======LLM INITIAL RESPONSE=======\n\n'
     with open(log_filename, 'w') as f:
-        f.write(response)
+        f.write(preamble + response)
 
     print(response)
 
@@ -64,6 +78,7 @@ def print_stats(results):
 
 
 def data_explorer():
+    inputs = copy.deepcopy(INPUTS)
     with open('WinoSound/od3_datasets/od3_train.jsonl', 'r') as f:
         json_list = list(f)
 
@@ -75,7 +90,13 @@ def data_explorer():
     while True:
         print('')
         while True:
-            s = input('enter an index (< %d) or "r" for random:'%(len(results)))
+            if len(inputs) == 0:
+                s = input('enter an index (< %d) or "r" for random:'%(len(results)))
+            else:
+                s = inputs[0]
+                inputs = inputs[1:]
+                print('auto-input "%s"'%(s))
+
             if s == 'r':
                 index = random.choice(range(len(results)))
                 break
@@ -93,8 +114,6 @@ def data_explorer():
         result = results[index]
         print_result(result)
         print('index = %d'%(index))
-        print(result.keys())
-        pdb.set_trace()
 
 
 if __name__ == '__main__':

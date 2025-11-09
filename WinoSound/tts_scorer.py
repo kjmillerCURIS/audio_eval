@@ -281,9 +281,9 @@ class TTSScorer:
 
 def main():
     my_scorer = TTSScorer()
-    for name in ['long', 'noflights', 'hawaiiflight', 'hello', 'hi']:
+    for name in ['furniturecope']: #['long', 'noflights', 'hawaiiflight', 'hello', 'hi']:
         for voice in ['echo', 'alloy', 'ash']:
-            for target_emotion in ['hesitant', 'frazzled', 'impatient', 'empathetic', 'bored', 'angry', 'neutral', 'sad', 'happy']:
+            for target_emotion in ['sad']: #['hesitant', 'frazzled', 'impatient', 'empathetic', 'bored', 'angry', 'neutral', 'sad', 'happy']:
                 extras = {}
                 for t in tqdm(range(10)):
                     audio_path = 'WinoSound/tts_samples/%s-%s-%s-%02d.wav'%(name, voice, target_emotion, t)

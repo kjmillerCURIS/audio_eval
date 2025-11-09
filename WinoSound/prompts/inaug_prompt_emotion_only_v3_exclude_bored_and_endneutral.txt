@@ -1,0 +1,46 @@
+You are an expert at analysing and modifying spoken conversations. We are building a speech-to-speech dataset which we will call “WinoSound”, because, like Winoground and Winograd Schema, we want to make difficult pairs that separate naive models from strong ones, based on their ability to detect certain differences that humans could easily detect. In this case the difference is in paralinguistic cues, specifically emotion.
+
+You will be given a text transcript of a source conversation S (i.e. a list of turns) between a human user (“HUMAN”) and a voice assistant (“VA”). Think about whether the paralinguistic emotions are obvious from the text in S, or whether they’re ambiguous at times (significantly different emotions are equally plausible). If they’re obvious, think about what textual signals make them obvious, and then think about small textual changes that could introduce ambiguity by removing those signals.
+
+Once you’ve thought about that, you must create a “WinoSound pair” in the following way:
+* Pick an index N such that S[:N] ends with a HUMAN turn and S[N:] starts with a VA turn. N does not necessarily have to be the full length, it could even be less than half.
+* Use S[:N] to produce the following things:
+** “Common” text C which can be obtained by making small textual modifications to S[:N]. Note that C is still a list of turns.
+** Inputs C_A and C_B, which are obtained by annotating C with different emotions (that means every turn in C gets annotated - see below for how to "annotate"). Note that C_A and C_B are still lists of turns, and their text is completely identical to C.
+** VA response turns R_A and R_B, which are significantly different from each other (either textually, emotionally, or both), and are such that [*C_A, R_A] and [*C_B, R_B] are appropriate and congruous, but [*C_A, R_B] and [*C_B, R_A] are very obviously not. We call this condition “WinoSound-hard”. Note that I’m using Python notation here, [*C_A, R_A] means the list of turns C_A with the single turn R_A appended to its end. Note that ALL of C_A has to be concordant with R_A and ALL of C_B with R_B.
+
+Think carefully about the above steps before you execute them - do not just blindly choose an N or a C, but think about what choice would best help you make C_A, R_A, C_B, R_B that are WinoSound-hard.
+
+You may use the following paralinguistic emotions:
+* "neutral" - a neutral, professional, clear tone, suitable for both humans and VAs.
+* "hesitant" - human uses this tone when they are very unsure of what they are saying or very unsure of the transaction, not at all confident. It is a very halting tone with upwards intonation at the end of every sentence. VA should never use this tone.
+* "frazzled" - human uses this tone when they are panicked or very worried. It is a high-speed, high-pitched tone. VA should never use this tone.
+* "impatient" - human uses this tone when they are in a big hurry but trying to keep their cool. It is rushed but has a normal pitch. An impatient human must always use a neutral tone on their first turn so it's clear that the impatient tone is faster than their normal talking speed. VA should handle impatient human by respecting and always acknowledging their time, and VA itself should never use an impatient tone.
+* "apologetic/empathetic/reassuring" - VA can use this tone to apologize, to handle a human who is upset, or to reassure a human who is hesitant. VA must always acknowledge the source of the human's negative emotion when using this tone. Note that all three of these names refer to the exact same tone of voice. VA must not use this tone in its final response if the human's final turn is happy. Human would seldom use this tone.
+* "angry" - human uses this tone when they are angry, furious, pissed-off, or very irritated. VA should never use this tone.
+* "sad" - human uses this tone when they are sad or disappointed. VA should never use this tone.
+* "happy" - human uses this tone when they are feeling happy, upbeat, cheerful. VA may use this tone to mirror human's happiness, but an upset human might be put off by an overly cheerful VA.
+
+The conversations you produce should be emotionally consistent - if the human's emotion changes, it should do so in a reasonable way that is easy to explain.
+
+In order to ensure that the WinoSound pair is obvious, the emotions of the last human turn of C_A and C_B, respectively, may ONLY come from the following pairings:
+* Pair "happy" with any one of {"hesitant", "frazzled", "sad", "angry"}
+* Pair "impatient" with "hesitant"
+Any other pairing of last human emotions is NOT ALLOWED. Note that it is NOT ALLOWED for C_A or C_B to end with a neutral utterance.
+
+Be sure to explain all your thoughts, and make sure the incongruities of [*C_A, R_B] and [*C_B, R_A] are blatantly obvious. If either [*C_A, R_B] or [*C_B, R_A] are "maybe okay", then they're not incongruous enough, and you have to either do better or give up. Explain why any shifts in the human's emotion are reasonable, and why the wrong pairings are blatantly wrong.
+
+If you think it is impossible to create a WinoSound-hard pair from S, you can say it’s impossible. It's better to say "impossible" than to give a pair that isn't emotionally consistent or isn't really WinoSound-hard.
+
+How to "annotate" a turn with emotion:
+* You must choose only ONE emotion
+* The emotion MUST be an item from this list: ["hesistant", "frazzled", "impatient", "apologetic/empathetic/reassuring", "angry", "neutral", "sad", "happy"]
+* I repeat, you may ONLY choose emotions from the above list, NOTHING ELSE
+* Annotation must be of the format HUMAN(emotion):"text" or VA(emotion):"text", e.g. HUMAN(hesitant):"I think my bag is here" or VA(empathetic):"I can check for you"
+
+Once you're finished, print the line "=======FINAL ANSWER=======", and then print C_A (in its entirety), R_A, then "===", then C_B (in its entirety), and R_B below. Or print "impossible" if impossible. Do not print any explanation after the FINAL ANSWER marker, just the answer please.
+
+Here is S:
+
+${source_conversation}
+

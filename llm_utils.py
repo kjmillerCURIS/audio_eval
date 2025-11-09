@@ -48,6 +48,7 @@ def extract_json(response, return_json_as_str=False):
     return d
 
 
+#CAUTION: gpt4o and gemini-2.5-flash handle list query differently
 def run_llm_helper(query, llm_name='gpt4o', dimensionwise=0, skip_config=False):
     assert(llm_name in ['gpt4o', 'gemini-2.5-flash'])
     if llm_name == 'gpt4o':
@@ -70,6 +71,16 @@ def run_llm_helper(query, llm_name='gpt4o', dimensionwise=0, skip_config=False):
         response = openai.chat.completions.create(model="gpt-4o", messages=messages)
         return response.choices[0].message.content
     elif llm_name == 'gemini-2.5-flash':
+        if isinstance(query, list):
+            assert(skip_config)
+            chat = gemini_client.chats.create(model=llm_name)
+            responses = []
+            for query_one in query:
+                response = chat.send_message(query_one)
+                responses.append(response.text)
+
+            return responses
+
         assert(isinstance(query, str))
         if skip_config:
             response = gemini_client.models.generate_content(model=llm_name, contents=query)
@@ -82,7 +93,7 @@ def run_llm_helper(query, llm_name='gpt4o', dimensionwise=0, skip_config=False):
                                 "response_schema": [OverallJudgement, DimensionwiseJudgement, FusionJudgement][dimensionwise],
                             },
                         )
-        
+
         return response.text
     else:
         assert(False)

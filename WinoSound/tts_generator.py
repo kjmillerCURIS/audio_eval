@@ -178,12 +178,12 @@ class TTSGenerator:
 
 def main():
     my_generator = TTSGenerator()
-    for name, text in [('hawaiiflight', 'I am flying to Hawaii tomorrow'), ('noflights', 'There are no flights on that day. Are there any other days that would work for you?'), ('long', 'The quick brown fox jumps over the lazy dog because the precipitation in Spain stays mainly in the plain'), ('hello', 'hello'), ('hi', 'hi')]:
+    for name, text in [('furniturecope', 'Ok. Well I really like the bed to the left of that chair, can you put it in my cart? Also that coffee table beside the other bed is nice, might as well get that one too!'), ('hawaiiflight', 'I am flying to Hawaii tomorrow'), ('noflights', 'There are no flights on that day. Are there any other days that would work for you?'), ('long', 'The quick brown fox jumps over the lazy dog because the precipitation in Spain stays mainly in the plain'), ('hello', 'hello'), ('hi', 'hi')]:
         if NEVER_USE_TEMPLATE and name != 'long':
             continue
 
         for voice in ['echo', 'alloy', 'ash']:
-            for target_emotion in ['hesitant', 'neutral', 'bored', 'frazzled', 'impatient', 'empathetic', 'sad', 'happy', 'angry']:
+            for target_emotion in ['sad']: #['hesitant', 'neutral', 'bored', 'frazzled', 'impatient', 'empathetic', 'sad', 'happy', 'angry']:
                 print((name, voice, target_emotion))
                 for rep in tqdm(range(10)):
                     out_dir = 'tts_samples'
