@@ -5,6 +5,7 @@ import math
 from tqdm import tqdm
 from pydub import AudioSegment
 import shutil
+import spacy
 import torchaudio
 sys.path.append('.')
 from openai import OpenAI
@@ -14,7 +15,11 @@ from WinoSound.asr_v2 import whisper_transcribe
 from WinoSound.syllable_counter import count_total_syllables
 
 
-TEMP_PATH = 'WinoSound/temp.wav'
+TEMP_PATH = 'WinoSound/temp%02d.wav'
+
+
+nlp = spacy.blank('en')
+
 
 #FIXME: go back and pare down these templates. Some you could throw out entirely, others maybe a small thing at the beginning for the "burn-in" effect. See "tts_samples_notemplate" for what the "long" text sounds like without any template ("hello" and "hi" were already templateless). Of course, you'll have to be careful when it comes time to add emphasis.
 INPUT_TEMPLATES = {
@@ -108,9 +113,9 @@ def match_cropping_target(text, target, first_or_last):
     return None
 
 
-def run_tts(text, target_emotion, voice, audio_path):
+def run_tts(text, target_emotion, voice, audio_path, override_template=False):
     my_template = INPUT_TEMPLATES[target_emotion]
-    if NEVER_USE_TEMPLATE or (len(text.split()) <= SHORT_MODE_WORD_THRESHOLD or count_total_syllables(text) <= SHORT_MODE_SYLLABLE_THRESHOLD):
+    if NEVER_USE_TEMPLATE or override_template or (len(text.split()) <= SHORT_MODE_WORD_THRESHOLD or count_total_syllables(text) <= SHORT_MODE_SYLLABLE_THRESHOLD):
         should_crop = False
         my_input = text
     else:
@@ -133,6 +138,23 @@ def run_tts(text, target_emotion, voice, audio_path):
     return should_crop
 
 
+#removes any punctuation that might give away paralinguistics (although LLM usually keeps punctuation exactly the same)
+def get_display_text(text):
+    doc = nlp(text)
+    prewords = [t.text.lower() for t in doc if not t.is_punct]
+    words = []
+    i = 0
+    while i < len(prewords):
+        if i < len(prewords) - 1 and prewords[i+1] in ['n\'t', '\'re', '\'ve', '\'s', '\'d', '\'m', '\'ll']:
+            words.append(prewords[i] + prewords[i+1])
+            i += 2
+        else:
+            words.append(prewords[i])
+            i += 1
+
+    return ' '.join(words)
+
+
 def crop_audio(input_path, text, target_emotion, output_path):
     my_input = INPUT_TEMPLATES[target_emotion] % text
     expected_start = match_cropping_target(my_input, CROP_PREFIXES[target_emotion], 'first')
@@ -144,6 +166,11 @@ def crop_audio(input_path, text, target_emotion, output_path):
     end = match_cropping_target(' '.join([wc[0] for wc in word_chunks]), CROP_SUFFIXES[target_emotion], 'last')
     if start is None or end is None:
         print('missing start or end target in cropping')
+        if get_display_text(transcript) == get_display_text(text):
+            print('allow it anyway because the TTS basically ignored the template')
+            shutil.copy(input_path, output_path)
+            return True
+
         return False
 
     if math.fabs(start - expected_start) > CROP_TOLERANCE or math.fabs(end - expected_end) > CROP_TOLERANCE:
@@ -162,17 +189,17 @@ class TTSGenerator:
     def __init__(self):
         pass
 
-    def generate(self, text, target_emotion, voice, audio_path):
-        assert(not os.path.exists(TEMP_PATH))
+    def generate(self, text, target_emotion, voice, audio_path, offset, override_template=False):
+        assert(not os.path.exists(TEMP_PATH % offset))
         os.makedirs(os.path.dirname(audio_path), exist_ok=True)
-        should_crop = run_tts(text, target_emotion, voice, TEMP_PATH)
+        should_crop = run_tts(text, target_emotion, voice, TEMP_PATH % offset, override_template=override_template)
         if should_crop:
-            success = crop_audio(TEMP_PATH, text, target_emotion, audio_path)
+            success = crop_audio(TEMP_PATH % offset, text, target_emotion, audio_path)
         else:
             success = True
-            shutil.copy(TEMP_PATH, audio_path)
+            shutil.copy(TEMP_PATH % offset, audio_path)
 
-        os.remove(TEMP_PATH)
+        os.remove(TEMP_PATH % offset)
         return success
 
 

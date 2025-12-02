@@ -34,6 +34,7 @@ def measure_audiojudge_agreement_dimensionwise(results_dict_filename, annotation
         for criteria in CRITERIA:
             credit = 0
             preds = []
+            bad_example = False
             if is_audiojudge:
                 for swap in ['12', '21']:
                     if criteria == 'overall (looking at dimensions)':
@@ -50,7 +51,12 @@ def measure_audiojudge_agreement_dimensionwise(results_dict_filename, annotation
                 if criteria == 'overall (looking at dimensions)':
                     pred = output['fusion_part']['pred']['overall_label']
                 else:
+                    if criteria not in output['pred']:
+                        print('NEED TO RECOMPUTE %s'%(k))
+                        continue
+
                     pred = output['pred'][criteria]
+
                 assert(pred in ['1', '2', 'both_good', 'both_bad'])
                 preds.append(pred)
 

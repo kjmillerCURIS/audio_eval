@@ -16,7 +16,7 @@ from json_as_a_judge.eval_tools.quality import audio_quality_scores
 from json_as_a_judge.eval_tools.properties import audio_properties
 from json_as_a_judge.eval_tools.properties_v2 import audio_properties as audio_properties_v2
 from json_as_a_judge.eval_tools.consistency import get_consistency_score
-from llm_utils import run_llm
+from llm_utils import run_llm, SUPPORTED_LLM_NAMES
 
 
 USE_SAVED_PROGRESS = True
@@ -335,7 +335,7 @@ def s2sarena_json_as_a_judge_inference(params_key, llm_name, dimensionwise, rep)
     p = PARAMS_DICT[params_key]
     dimensionwise = int(dimensionwise)
     rep = int(rep)
-    assert(llm_name in ['gpt4o', 'gemini-2.5-flash'])
+    assert(llm_name in SUPPORTED_LLM_NAMES)
 
     example_info_dict = load_example_info_dict()
     print('total of %d examples'%(len(example_info_dict)))

@@ -1,13 +1,22 @@
 import os
 import sys
-import json
-from json import JSONDecodeError
 import openai
+from openai import OpenAI
 from openai_utils import OPENAI_API_KEY, GOOGLE_API_KEY
 openai.api_key = OPENAI_API_KEY
 from google import genai
 from pydantic import BaseModel
+from huggingface_hub import login
+from huggingface_utils import HUGGINGFACE_API_KEY
+from extract_json import extract_json
 gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+deepinfra_client = OpenAI(api_key=HUGGINGFACE_API_KEY, base_url='https://api.deepinfra.com/v1/openai')
+
+
+DEEPINFRA_MODELS = {'gpt-oss-20b-fp4' : 'openai/gpt-oss-20b',
+                    'llama3.3-70b-fp8' : 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+                    'llama3.3-nemotron-49b-fp8' : 'nvidia/Llama-3.3-Nemotron-Super-49B-v1.5'}
+SUPPORTED_LLM_NAMES = ['gpt4o', 'gemini-2.5-flash'] + sorted(DEEPINFRA_MODELS.keys())
 
 
 class OverallJudgement(BaseModel):
@@ -27,30 +36,9 @@ class FusionJudgement(BaseModel):
     overall_label: str
 
 
-def extract_json(response, return_json_as_str=False):
-    start, end = response.find('{'), response.rfind('}')
-    assert(start >= 0 and end >= 0)
-    json_str = response[start:end+1]
-    if ' "label\': ' in json_str[-20:]:
-        json_str = json_str[:-20] + json_str[-20:].replace(' "label\': ', ' "label": ')
-
-    try:
-        d = json.loads(json_str)
-    except JSONDecodeError as e:
-        print(f'JSONDecodeError {e}')
-#        print('Here was the string...')
-#        print(json_str)
-        return None
-
-    if return_json_as_str:
-        return json_str
-
-    return d
-
-
 #CAUTION: gpt4o and gemini-2.5-flash handle list query differently
 def run_llm_helper(query, llm_name='gpt4o', dimensionwise=0, skip_config=False):
-    assert(llm_name in ['gpt4o', 'gemini-2.5-flash'])
+    assert(llm_name in  SUPPORTED_LLM_NAMES)
     if llm_name == 'gpt4o':
         if isinstance(query, str):
             messages = [{"role": "system", "content": query}]
@@ -95,6 +83,12 @@ def run_llm_helper(query, llm_name='gpt4o', dimensionwise=0, skip_config=False):
                         )
 
         return response.text
+    elif llm_name in DEEPINFRA_MODELS:
+        assert(isinstance(query, str))
+        model = DEEPINFRA_MODELS[llm_name]
+        messages = [{'role' : 'system', 'content' : query}]
+        response = deepinfra_client.chat.completions.create(model=model, messages=messages, stream=False)
+        return response.choices[0].message.content
     else:
         assert(False)
 

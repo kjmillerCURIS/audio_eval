@@ -36,7 +36,7 @@ EMPATHETIC_ANGRY_DISGUSTED_THRESHOLD = 0.01
 EMPATHETIC_RELATIVE_SPEED_THRESHOLD = 0.02
 BORED_SCORE_THRESHOLD = 0.05
 ANGRY_SCORE_THRESHOLD = 0.5
-NEUTRAL_SCORE_THRESHOLD = 0.8
+NEUTRAL_SCORE_THRESHOLD = 0.6 #0.8
 SAD_SCORE_THRESHOLD = 0.03
 HAPPY_SCORE_THRESHOLD = 0.005
 
@@ -217,12 +217,13 @@ def score_angry(audio_path):
     return qualified, score, extra
 
 
+#qualification compares neutral + happy to threshold, but neutral alone is reported as the score
 def score_neutral(audio_path):
     extra = {}
     vec = compute_normalized_emotion2vec(audio_path)
-    extra['emotion2vec_components'] = {emotion : vec[emotion] for emotion in ['neutral']}
+    extra['emotion2vec_components'] = {emotion : vec[emotion] for emotion in ['neutral', 'happy']}
     score = vec['neutral']
-    qualified = int(score >= NEUTRAL_SCORE_THRESHOLD)
+    qualified = int(vec['neutral'] + vec['happy'] >= NEUTRAL_SCORE_THRESHOLD)
     extra['score'] = score
     extra['qualified'] = qualified
     return qualified, score, extra

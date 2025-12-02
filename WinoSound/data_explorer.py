@@ -11,7 +11,7 @@ from llm_utils import run_llm
 
 
 LOG_DIR = 'WinoSound/paralinguistic_quality_and_diversity_logs_v4_exclude_bored_and_endimpatienthesitant'
-INPUTS = ['776', 'gi', '2395', 'gi', '2754', 'gi', '2848', 'gi', '3903', 'gi', '4473', 'gi', '7593', 'gi', '8306', 'gi', '13112', 'gi', '19933', 'gi', '23278', 'gi', '26509', 'gi', '32820', 'gi', '34102', 'gi', '37879', 'gi', '38997', 'gi', '39299', 'gi', '40415', 'gi', '40867', 'gi', '42036', 'gi']
+INPUTS = [] #['776', 'gi', '2395', 'gi', '2754', 'gi', '2848', 'gi', '3903', 'gi', '4473', 'gi', '7593', 'gi', '8306', 'gi', '13112', 'gi', '19933', 'gi', '23278', 'gi', '26509', 'gi', '32820', 'gi', '34102', 'gi', '37879', 'gi', '38997', 'gi', '39299', 'gi', '40415', 'gi', '40867', 'gi', '42036', 'gi']
 
 
 def print_result(result):
